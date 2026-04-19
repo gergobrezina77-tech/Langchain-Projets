@@ -18,7 +18,7 @@ llm = ChatGoogleGenerativeAI(
 )
 print(os.getcwd())
 # 3. Load your PDF
-loader = PyPDFLoader("datasets/DLHM_Final.pdf")  # <-- change this to your PDF filename
+loader = PyPDFLoader(os.getenv(PATH_TO_PDF))  # <-- change this to your PDF filename
 pages = loader.load()
 
 # 4. Split into chunks
