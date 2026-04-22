@@ -7,18 +7,30 @@ from langchain_community.vectorstores import FAISS
 from langchain_classic.chains.retrieval_qa.base import RetrievalQA
 import google.generativeai as genai
 from langchain_core.prompts import PromptTemplate
+from langchain_ollama import OllamaEmbeddings
+
 
 # 1. Load environment
 load_dotenv()
+embeddings_model_name = os.getenv("EMBEDDING_MODEL_NAME")
+llm_model_name = os.getenv("LLM_MODEL_NAME")
 
 # 2. Set up the model
 llm = ChatGoogleGenerativeAI(
-    model="gemma-4-26b-a4b-it",
+    model=llm_model_name,
     google_api_key=os.getenv("GOOGLE_API_KEY")
 )
 print(os.getcwd())
 # 3. Load your PDF
-loader = PyPDFLoader(os.getenv(PATH_TO_PDF))  # <-- change this to your PDF filename
+pdf_path = os.getenv("PATH_TO_PDF")
+if not pdf_path:
+    # default to project-level datasets/DLHM_Final.pdf relative to this file
+    base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    pdf_path = os.path.join(base_dir, "datasets", "DLHM_Final.pdf")
+pdf_path = os.path.abspath(pdf_path)
+if not os.path.exists(pdf_path):
+    raise FileNotFoundError(f"PDF not found at {pdf_path}. Set PATH_TO_PDF in .env or place the PDF there.")
+loader = PyPDFLoader(pdf_path)
 pages = loader.load()
 
 # 4. Split into chunks
@@ -26,10 +38,7 @@ splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
 chunks = splitter.split_documents(pages)
 
 # 5. Create embeddings + vector store
-embeddings = GoogleGenerativeAIEmbeddings(
-    model="models/gemini-embedding-001",
-    google_api_key=os.getenv("GOOGLE_API_KEY")
-)
+embeddings = OllamaEmbeddings(model=embeddings_model_name)
 vectorstore = FAISS.from_documents(chunks, embeddings)
 
 # 6. Create the QA chain

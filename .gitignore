@@ -1,5 +1,13 @@
+#Local variables, paths, and packages
 .env
 .env.local
 .env.*
 .venv
+__pycache__/
+
+# Data files
 .pdf
+vector_databases/
+
+# Sandbox files
+sandbox.ipynb
